@@ -1268,6 +1268,14 @@
 
           if (!_workerSelf.assetLoader) {
             _workerSelf.assetLoader = function () {
+              function formatFetchResponse(response) {
+                var contentTypeHeader = response.headers.get('content-type');
+
+                if (contentTypeHeader && xhr.responseType === 'json' && contentTypeHeader.indexOf('json') !== -1) {
+                  return xhr.response;
+                }
+              }
+
               function formatResponse(xhr) {
                 // using typeof doubles the time of execution of this method,
                 // so if available, it's better to use the header to validate the type
@@ -1301,12 +1309,25 @@
                   if (!response.ok) {
                     throw new Error("HTTP error! Status: ".concat(response.status));
                     errorCallback(new Error("HTTP error! Status: ".concat(response.status)));
-                  } //response = formatResponse(xhr);
+                  }
 
-
-                  callback(response);
+                  response.json().then(function (result) {
+                    callback(result);
+                  });
                 })["catch"](function (error) {
-                  errorCallback(error);
+                  var myRequestFull = new Request(fullPath + '/' + path, {
+                    method: "GET"
+                  });
+                  fetch(myRequestFull).then(function (response) {
+                    if (!response.ok) {
+                      throw new Error("HTTP error! Status: ".concat(response.status));
+                      errorCallback(new Error("HTTP error! Status: ".concat(response.status)));
+                    }
+
+                    response.json().then(function (result) {
+                      callback(result);
+                    });
+                  });
                 });
               }
 
