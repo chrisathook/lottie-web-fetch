@@ -1169,28 +1169,39 @@
                 var myRequest = new Request(path, {
                   method: "GET"
                 });
+                var myRequestFull = new Request(fullPath + '/' + path, {
+                  method: "GET"
+                });
                 fetch(myRequest).then(function (response) {
                   if (!response.ok) {
-                    throw new Error("HTTP error! Status: ".concat(response.status));
-                    errorCallback(new Error("HTTP error! Status: ".concat(response.status)));
+                    fetch(myRequestFull).then(function (response) {
+                      if (!response.ok) {
+                        errorCallback(new Error("HTTP error! Status: ".concat(response.status)));
+                        throw new Error("HTTP error! Status: ".concat(response.status));
+                      }
+
+                      response.json().then(function (result) {
+                        callback(result);
+                      });
+                    });
                   }
 
                   response.json().then(function (result) {
                     callback(result);
                   });
                 })["catch"](function (error) {
-                  var myRequestFull = new Request(fullPath + '/' + path, {
-                    method: "GET"
-                  });
                   fetch(myRequestFull).then(function (response) {
                     if (!response.ok) {
-                      throw new Error("HTTP error! Status: ".concat(response.status));
                       errorCallback(new Error("HTTP error! Status: ".concat(response.status)));
+                      throw new Error("HTTP error! Status: ".concat(response.status));
                     }
 
                     response.json().then(function (result) {
                       callback(result);
                     });
+                  })["catch"](function (error) {
+                    errorCallback(new Error("FINAL ERROR"));
+                    throw new Error("FINAL ERROR");
                   });
                 });
               }
@@ -1198,40 +1209,6 @@
               function loadAsset(path, fullPath, callback, errorCallback) {
                 fetchAsset(path, fullPath, callback, errorCallback);
                 return;
-                var response;
-                var xhr = new XMLHttpRequest(); // set responseType after calling open or IE will break.
-
-                try {
-                  // This crashes on Android WebView prior to KitKat
-                  xhr.responseType = 'json';
-                } catch (err) {} // eslint-disable-line no-empty
-
-
-                xhr.onreadystatechange = function () {
-                  if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                      response = formatResponse(xhr);
-                      callback(response);
-                    } else {
-                      try {
-                        response = formatResponse(xhr);
-                        callback(response);
-                      } catch (err) {
-                        if (errorCallback) {
-                          errorCallback(err);
-                        }
-                      }
-                    }
-                  }
-                };
-
-                try {
-                  xhr.open('GET', path, true);
-                } catch (error) {
-                  xhr.open('GET', fullPath + '/' + path, true);
-                }
-
-                xhr.send();
               }
 
               return {
