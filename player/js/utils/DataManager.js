@@ -544,35 +544,48 @@ const dataManager = (function () {
               var myRequest = new Request(path,{
                 method:"GET"
               });
-
+              var myRequestFull = new Request(fullPath + '/' + path,{
+                method:"GET"
+              });
               fetch(myRequest)
                 .then(response => {
                   if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                    errorCallback(new Error(`HTTP error! Status: ${response.status}`));
+                    fetch(myRequestFull)
+                      .then(response => {
+                        if (!response.ok) {
+                          
+                          errorCallback(new Error(`HTTP error! Status: ${response.status}`));
+                          throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                       
+                        response.json().then (result => {
+                          callback(result);
+                        })
+                    })
+
                   }
-                    
                     response.json().then (result => {
                       callback(result);
                     })
                    
                 })
                 .catch(error => {
-                  var myRequestFull = new Request(fullPath + '/' + path,{
-                    method:"GET"
-                  });
-
                   fetch(myRequestFull)
-                  .then(response => {
-                    if (!response.ok) {
-                      throw new Error(`HTTP error! Status: ${response.status}`);
-                      errorCallback(new Error(`HTTP error! Status: ${response.status}`));
-                    }
-                     
-                      response.json().then (result => {
-                        callback(result);
-                      })
-                  })
+                    .then(response => {
+                      if (!response.ok) {
+                        
+                        errorCallback(new Error(`HTTP error! Status: ${response.status}`));
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                      }
+                      
+                        response.json().then (result => {
+                          callback(result);
+                        })
+                    })
+                    .catch(error => {
+                      errorCallback(new Error(`FINAL ERROR`));
+                      throw new Error(`FINAL ERROR`);
+                    })
 
                 });
 
