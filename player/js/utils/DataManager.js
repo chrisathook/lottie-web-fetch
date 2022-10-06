@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { getWebWorker } from '../main';
 
 const dataManager = (function () {
@@ -525,7 +526,32 @@ const dataManager = (function () {
               return null;
             }
 
+            function fetchAsset(path, fullPath, callback, errorCallback) {
+              var response;
+              var myRequest = new Request(path,{
+                method:"GET"
+              });
+
+              fetch(myRequest)
+                .then(response => {
+                  if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                    errorCallback(new Error(`HTTP error! Status: ${response.status}`));
+                  }
+                    //response = formatResponse(xhr);
+                    callback(response);
+                })
+                .catch(error => {
+                    errorCallback(error);
+                });
+
+            }
+
             function loadAsset(path, fullPath, callback, errorCallback) {
+
+              fetchAsset (path, fullPath, callback, errorCallback)
+              return;
+
               var response;
               var xhr = new XMLHttpRequest();
               // set responseType after calling open or IE will break.
