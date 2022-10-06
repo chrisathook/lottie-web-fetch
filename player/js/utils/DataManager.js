@@ -595,37 +595,6 @@ const dataManager = (function () {
 
               fetchAsset (path, fullPath, callback, errorCallback)
               return;
-
-              var response;
-              var xhr = new XMLHttpRequest();
-              // set responseType after calling open or IE will break.
-              try {
-                // This crashes on Android WebView prior to KitKat
-                xhr.responseType = 'json';
-              } catch (err) {} // eslint-disable-line no-empty
-              xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4) {
-                  if (xhr.status === 200) {
-                    response = formatResponse(xhr);
-                    callback(response);
-                  } else {
-                    try {
-                      response = formatResponse(xhr);
-                      callback(response);
-                    } catch (err) {
-                      if (errorCallback) {
-                        errorCallback(err);
-                      }
-                    }
-                  }
-                }
-              };
-              try {
-                xhr.open('GET', path, true);
-              } catch (error) {
-                xhr.open('GET', fullPath + '/' + path, true);
-              }
-              xhr.send();
             }
             return {
               load: loadAsset,
